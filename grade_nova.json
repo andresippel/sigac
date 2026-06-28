@@ -1,0 +1,125 @@
+{
+  "curso": "Odontologia — Novo PPC (FAODO/UFMS)",
+  "ch_total_curso": 4045,
+  "ch_optativas_exigidas": 90,
+  "ch_extensao_exigida": 435,
+  "semestres": [
+    {
+      "numero": 1,
+      "disciplinas": [
+        { "nome": "Anatomia Geral e Odontológica I",                             "ch": 60 },
+        { "nome": "Bioquímica I",                                                "ch": 45 },
+        { "nome": "Fundamentos de Biologia Celular, Embriologia e Genética Humana", "ch": 45 },
+        { "nome": "Histologia Básica",                                           "ch": 45 },
+        { "nome": "Odontologia em Saúde Coletiva I",                             "ch": 15 },
+        { "nome": "Princípios de Sociologia",                                    "ch": 15 },
+        { "nome": "Psicologia Aplicada à Odontologia",                           "ch": 15 }
+      ]
+    },
+    {
+      "numero": 2,
+      "disciplinas": [
+        { "nome": "Anatomia Geral e Odontológica II",    "ch": 60 },
+        { "nome": "Bioquímica II",                       "ch": 45 },
+        { "nome": "Biomateriais I",                      "ch": 45 },
+        { "nome": "Fisiologia",                          "ch": 45 },
+        { "nome": "Histologia Bucal e de Sistemas",      "ch": 45 },
+        { "nome": "Imunologia",                          "ch": 45 },
+        { "nome": "Microbiologia",                       "ch": 30 },
+        { "nome": "Odontologia em Saúde Coletiva II",    "ch": 15 }
+      ]
+    },
+    {
+      "numero": 3,
+      "disciplinas": [
+        { "nome": "Biomateriais II",                     "ch": 60 },
+        { "nome": "Epidemiologia e Bioestatística",      "ch": 15 },
+        { "nome": "Farmacologia I",                      "ch": 30 },
+        { "nome": "Introdução à Odontologia, Ergonomia e Biossegurança", "ch": 60 },
+        { "nome": "Metodologia Científica",              "ch": 15 },
+        { "nome": "Microbiologia Oral",                  "ch": 45 },
+        { "nome": "Patologia Geral",                     "ch": 45 }
+      ]
+    },
+    {
+      "numero": 4,
+      "disciplinas": [
+        { "nome": "Biomateriais I",                      "ch": 45 },
+        { "nome": "Cariologia",                          "ch": 15 },
+        { "nome": "Dentística Pré-Clínica",              "ch": 75 },
+        { "nome": "Estomatologia",                       "ch": 75 },
+        { "nome": "Ética e Deontologia",                 "ch": 15 },
+        { "nome": "Farmacologia II",                     "ch": 30 },
+        { "nome": "Oclusão",                             "ch": 60 },
+        { "nome": "Patologia Oral e Maxilofacial",       "ch": 60 },
+        { "nome": "Radiologia II",                       "ch": 60 }
+      ]
+    },
+    {
+      "numero": 5,
+      "disciplinas": [
+        { "nome": "Anestesiologia e Terapêutica",        "ch": 45 },
+        { "nome": "Clínica de Cariologia",               "ch": 45 },
+        { "nome": "Laboratório de Endodontia",           "ch": 45 },
+        { "nome": "Odontologia Legal",                   "ch": 15 },
+        { "nome": "Ortodontia Preventiva Interceptativa","ch": 75 },
+        { "nome": "Princípios Clínicos de Dentística",   "ch": 60 },
+        { "nome": "Princípios Clínicos de Periodontia",  "ch": 60 },
+        { "nome": "Princípios Clínicos de Prótese Fixa", "ch": 60 }
+      ]
+    },
+    {
+      "numero": 6,
+      "disciplinas": [
+        { "nome": "Avaliação Clínica Interdisciplinar",  "ch": 45 },
+        { "nome": "Bioética",                            "ch": 15 },
+        { "nome": "Clínica de Cirurgia",                 "ch": 75 },
+        { "nome": "Clínica de Dentística",               "ch": 75 },
+        { "nome": "Clínica de Endodontia",               "ch": 75 },
+        { "nome": "Clínica de Periodontia",              "ch": 75 },
+        { "nome": "Princípios Clínicos de Prótese Removível", "ch": 60 }
+      ]
+    },
+    {
+      "numero": 7,
+      "disciplinas": [
+        { "nome": "Atendimento Odontológico Integrado I (Cirurgia, Dentística, Endodontia e Periodontia)", "ch": 240 },
+        { "nome": "Clínica de Prótese",                  "ch": 60 },
+        { "nome": "Estágio Obrigatório em Estomatologia","ch": 75 },
+        { "nome": "Estágio Obrigatório Extramuro em Odontologia de Saúde Bucal Coletiva I", "ch": 60 },
+        { "nome": "Odontologia em Saúde Coletiva III",   "ch": 15 },
+        { "nome": "Princípios de Implantodontia",        "ch": 15 }
+      ]
+    },
+    {
+      "numero": 8,
+      "disciplinas": [
+        { "nome": "Atendimento Odontológico Integrado II (Cirurgia, Dentística, Endodontia, Periodontia e Prótese)", "ch": 255 },
+        { "nome": "Estágio Obrigatório Extramuro em Odontologia de Saúde Bucal Coletiva II", "ch": 60 },
+        { "nome": "Odontologia para Pacientes com Necessidades Especiais", "ch": 90 }
+      ]
+    },
+    {
+      "numero": 9,
+      "disciplinas": [
+        { "nome": "Estágio Obrigatório em Clínica de Odontologia de Saúde Coletiva I", "ch": 60 },
+        { "nome": "Estágio Obrigatório em Clínica Integrada I.1 – Reabilitação Oral (Dentística e Prótese)", "ch": 60 },
+        { "nome": "Estágio Obrigatório em Clínica Integrada I.2 – Cirurgia, Endodontia e Periodontia", "ch": 60 },
+        { "nome": "Estágio Obrigatório em Odontologia para Bebês", "ch": 45 },
+        { "nome": "Estágio Obrigatório em Odontologia para Pacientes com Necessidades Especiais", "ch": 60 },
+        { "nome": "Estágio Obrigatório em Planejamento Clínico Odontológico", "ch": 45 },
+        { "nome": "Odontopediatria",                     "ch": 105 }
+      ]
+    },
+    {
+      "numero": 10,
+      "disciplinas": [
+        { "nome": "Estágio Obrigatório em Clínica de Odontologia de Saúde Coletiva II", "ch": 60 },
+        { "nome": "Estágio Obrigatório em Clínica Infantil",            "ch": 60 },
+        { "nome": "Estágio Obrigatório em Clínica Integrada II.1 – Reabilitação Oral (Dentística e Prótese)", "ch": 60 },
+        { "nome": "Estágio Obrigatório em Clínica Integrada II.2 – Cirurgia, Endodontia e Periodontia", "ch": 60 },
+        { "nome": "Estágio Obrigatório em Urgência Odontológica",       "ch": 60 }
+      ]
+    }
+  ]
+}

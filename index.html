@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Planos de Estudos — FAODO/UFMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     HEADER GLOBAL
+══════════════════════════════════════════ -->
+<header class="site-header">
+  <div class="header-inner">
+
+    <a class="brand" onclick="irHome()" tabindex="0" role="button" aria-label="Voltar ao início">
+      <span class="brand-sigla">UFMS</span>
+      <div>
+        <div class="brand-title">Planos de Estudos</div>
+        <div class="brand-sub">FAODO · Coordenação de Curso</div>
+      </div>
+    </a>
+
+    <!-- Exibido na home — subtítulo estático -->
+    <span id="headerHome" style="font-size:12px;color:rgba(255,255,255,.35);font-style:italic">
+      Sistema de Gestão Acadêmica
+    </span>
+
+    <!-- Exibido dentro dos módulos — badges dinâmicos -->
+    <div class="header-badges" id="headerBadges" style="display:none">
+      <div class="badge badge-idle" id="badgeGrade1">
+        <span class="badge-dot"></span><span id="badgeGrade1Nome">Grade atual</span>
+      </div>
+      <div class="badge badge-idle" id="badgeGrade2">
+        <span class="badge-dot"></span><span id="badgeGrade2Nome">Grade nova</span>
+      </div>
+      <div class="badge badge-idle" id="badgeEq">
+        <span class="badge-dot"></span><span id="badgeEqNome">Equivalências</span>
+      </div>
+    </div>
+
+  </div>
+</header>
+
+
+<!-- ══════════════════════════════════════════
+     TELA INICIAL
+══════════════════════════════════════════ -->
+<div id="screenHome" class="screen active">
+  <div class="home-hero">
+    <h1>Qual sistema você precisa hoje?</h1>
+    <p>
+      Selecione o módulo adequado para o perfil do acadêmico.
+      Os dois sistemas operam de forma independente e os dados ficam salvos no navegador.
+    </p>
+  </div>
+
+  <div class="home-cards">
+
+    <div class="home-card card-aprov"
+         onclick="abrirModulo('aproveitamento')"
+         tabindex="0" role="button"
+         aria-label="Abrir sistema de aproveitamento de estudos">
+      <div class="home-card-icon">📋</div>
+      <span class="home-card-badge">PPC Atual</span>
+      <div class="home-card-title">Aproveitamento de Estudos</div>
+      <div class="home-card-desc">
+        Para alunos que solicitam aproveitamento de disciplinas cursadas em outra instituição.
+        Calcula o enquadramento semestral conforme a IN Prograd nº 40/2019 e gera o documento para o SEI.
+      </div>
+      <div class="home-card-cta">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        Abrir módulo
+      </div>
+    </div>
+
+    <div class="home-card card-novoppc"
+         onclick="abrirModulo('novoppc')"
+         tabindex="0" role="button"
+         aria-label="Abrir sistema de transição de grade">
+      <div class="home-card-icon">🔄</div>
+      <span class="home-card-badge">Novo PPC</span>
+      <div class="home-card-title">Transição de Grade Curricular</div>
+      <div class="home-card-desc">
+        Para alunos que migram para o novo PPC. Aplica a tabela de equivalências automaticamente
+        e gera o plano de estudos adaptado à grade nova — processamento em lote para vários alunos de uma vez.
+      </div>
+      <div class="home-card-cta">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        Abrir módulo
+      </div>
+    </div>
+
+  </div>
+</div><!-- /screenHome -->
+
+
+<!-- ══════════════════════════════════════════
+     MÓDULO 1 — APROVEITAMENTO DE ESTUDOS
+══════════════════════════════════════════ -->
+<div id="screenAproveitamento" class="screen">
+
+  <div class="module-bar">
+    <div class="module-bar-inner">
+      <button class="module-back" onclick="irHome()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        Início
+      </button>
+      <div class="module-separator"></div>
+      <span class="module-title">Aproveitamento de Estudos · PPC Atual</span>
+    </div>
+  </div>
+
+  <div class="stepper-bar">
+    <div class="stepper-inner">
+      <div class="step active" id="m1step1">
+        <span class="step-num">1</span>
+        <span class="step-label">Histórico</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" id="m1step2">
+        <span class="step-num">2</span>
+        <span class="step-label">Enquadramento</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" id="m1step3">
+        <span class="step-num">3</span>
+        <span class="step-label">Plano</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="layout">
+
+    <!-- Identificação -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-num">1</span>
+        Identificação do Acadêmico
+      </div>
+      <div class="fields-row">
+        <div class="field-group field-wide">
+          <label class="field-label" for="m1AlunoInfo">RGA · Nome</label>
+          <input type="text" id="m1AlunoInfo" placeholder="Ex: 2023.3292.019-3 - Maria da Silva" autocomplete="off">
+          <span class="field-hint">Preenchido automaticamente ao importar o histórico.</span>
+        </div>
+        <div class="field-group field-narrow">
+          <label class="field-label" for="m1Semestre">Semestre Base</label>
+          <input type="text" id="m1Semestre" value="2026/1" placeholder="2026/1" autocomplete="off">
+          <span class="field-hint">Semestre letivo atual.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload do histórico -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-num">2</span>
+        Análise de Histórico
+      </div>
+      <div class="drop-zone" id="m1DropHistorico" tabindex="0" role="button" aria-label="Área de upload do histórico">
+        <div class="drop-icon">📄</div>
+        <p class="drop-title">Arraste a Análise de Histórico aqui</p>
+        <p class="drop-sub">ou <label for="m1InputHistorico" class="file-link">escolha o arquivo</label> (.xlsx / .xls)</p>
+        <input type="file" id="m1InputHistorico" accept=".xlsx,.xls,.csv" hidden>
+      </div>
+      <div id="m1FeedbackHistorico" class="feedback-bar info" hidden></div>
+      <div class="divider"><span>ou informe manualmente</span></div>
+      <div class="fields-row">
+        <div class="field-group">
+          <label class="field-label" for="m1CargaHoraria">CH Obrigatória Cursada (h)</label>
+          <input type="number" id="m1CargaHoraria" placeholder="Ex: 1500" min="0">
+        </div>
+      </div>
+    </div>
+
+    <!-- Aproveitamento -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-num">3</span>
+        Aproveitamento de Estudos
+        <span class="tag">Opcional</span>
+      </div>
+      <p class="card-desc">
+        Disciplinas dispensadas por análise de currículo que <strong>não</strong> constam na Análise de Histórico.
+      </p>
+      <div id="m1ListaAproveitamento" class="checkbox-list">
+        <p class="empty-state">Carregando disciplinas da grade...</p>
+      </div>
+      <button id="m1BtnCalcular" class="btn btn-primary btn-full">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Calcular Enquadramento
+      </button>
+    </div>
+
+    <!-- Resultado -->
+    <div id="m1ResultadoBlock" class="resultado-block" hidden>
+      <div class="resultado-inner">
+        <div class="resultado-icon">🎓</div>
+        <div class="resultado-texto">
+          <span class="resultado-label">Enquadramento · IN 40/2019</span>
+          <span id="m1ResultadoSemestre" class="resultado-valor">—</span>
+        </div>
+        <span id="m1ResultadoCH" class="resultado-ch"></span>
+      </div>
+    </div>
+
+    <!-- Plano gerado -->
+    <div id="m1SecPlano" class="card" hidden>
+      <div class="card-title">
+        <span class="card-num">4</span>
+        Plano de Estudos Gerado
+      </div>
+      <p class="card-desc">Confira a prévia e exporte para o SEI ou Word.</p>
+      <div class="export-actions">
+        <button id="m1BtnCopiarSEI" class="btn btn-teal">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copiar para o SEI (&lt;&nbsp;&gt;)
+        </button>
+        <button id="m1BtnBaixarWord" class="btn btn-navy">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Baixar Word (.doc)
+        </button>
+      </div>
+      <div id="m1PreviewPlano" class="preview-box"></div>
+    </div>
+
+    <!-- Admin grade -->
+    <div class="card card-admin">
+      <div class="card-title">
+        <span class="card-num gray">⚙</span>
+        Gerenciar Grade do Curso
+      </div>
+      <p class="card-desc">Importe a grade curricular do curso ou faça backup da atual.</p>
+      <div class="drop-zone drop-zone-sm" id="m1DropImportar" tabindex="0" role="button">
+        <div class="drop-icon">⚙️</div>
+        <p class="drop-title">Importar grade (.json)</p>
+        <p class="drop-sub"><label for="m1InputImportar" class="file-link">Selecionar arquivo</label></p>
+        <input type="file" id="m1InputImportar" accept=".json" hidden>
+      </div>
+      <button id="m1BtnExportar" class="btn btn-outline btn-full" style="margin-top:10px">
+        ↓ Exportar grade atual (.json)
+      </button>
+      <div id="m1FeedbackGrade" class="feedback-bar" hidden></div>
+    </div>
+
+  </main>
+</div><!-- /screenAproveitamento -->
+
+
+<!-- ══════════════════════════════════════════
+     MÓDULO 2 — TRANSIÇÃO DE GRADE / NOVO PPC
+══════════════════════════════════════════ -->
+<div id="screenNovoPPC" class="screen">
+
+  <div class="module-bar">
+    <div class="module-bar-inner">
+      <button class="module-back" onclick="irHome()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        Início
+      </button>
+      <div class="module-separator"></div>
+      <span class="module-title">Transição de Grade · Novo PPC</span>
+    </div>
+  </div>
+
+  <main class="layout">
+
+    <!-- Configuração -->
+    <div class="card card-admin">
+      <div class="card-title teal">
+        <span class="card-num teal">⚙</span>
+        Configuração — Grade e Equivalências
+        <span class="tag">Carregar uma vez</span>
+      </div>
+      <p class="card-desc">Os arquivos ficam salvos no navegador — só é preciso recarregar quando houver atualização.</p>
+
+      <div class="config-grid">
+
+        <div>
+          <span class="config-label">Grade Nova (JSON)</span>
+          <div class="drop-mini" id="m2DropGrade" tabindex="0" role="button">
+            📋 <span id="m2DropGradeLabel">Arraste ou <label for="m2InputGrade" class="file-link">selecione</label></span>
+            <input type="file" id="m2InputGrade" accept=".json" hidden>
+          </div>
+        </div>
+
+        <div>
+          <span class="config-label">Equivalências (JSON)</span>
+          <div class="drop-mini" id="m2DropEq" tabindex="0" role="button">
+            🔄 <span id="m2DropEqLabel">Arraste ou <label for="m2InputEq" class="file-link">selecione</label></span>
+            <input type="file" id="m2InputEq" accept=".json" hidden>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:6px;justify-content:flex-end">
+          <button id="m2BtnExportGrade" class="btn btn-outline" style="font-size:12px;padding:7px 12px">↓ Grade nova (.json)</button>
+          <button id="m2BtnExportEq"    class="btn btn-outline" style="font-size:12px;padding:7px 12px">↓ Equivalências (.json)</button>
+        </div>
+
+      </div>
+
+      <div id="m2FeedbackConfig" class="feedback-bar info" style="margin-top:14px">
+        ⓘ Carregue a <strong>grade_nova.json</strong> e <strong>equivalencias.json</strong> antes de processar.
+      </div>
+    </div>
+
+    <!-- Lote -->
+    <div class="card">
+      <div class="card-title teal">
+        <span class="card-num teal">1</span>
+        Processamento em Lote
+      </div>
+      <p class="card-desc">
+        Envie todos os históricos de uma vez. O sistema aplica as equivalências e gera um plano individual por aluno.
+      </p>
+
+      <div class="drop-zone" id="m2DropBatch" tabindex="0" role="button" aria-label="Enviar históricos em lote">
+        <div class="drop-icon">📂</div>
+        <p class="drop-title">Arraste os históricos aqui (vários ao mesmo tempo)</p>
+        <p class="drop-sub">ou <label for="m2InputBatch" class="file-link">clique para selecionar</label> (.xlsx / .xls)</p>
+        <input type="file" id="m2InputBatch" accept=".xlsx,.xls" multiple hidden>
+      </div>
+
+      <div id="m2FileList" class="file-list" style="display:none"></div>
+      <div class="progress-bar-wrap" id="m2ProgressWrap" style="display:none">
+        <div class="progress-bar" id="m2ProgressBar"></div>
+      </div>
+
+      <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px">
+        <div class="fields-row">
+          <div class="field-group" style="max-width:180px">
+            <label class="field-label" for="m2Semestre">Semestre base atual</label>
+            <input type="text" id="m2Semestre" value="2026/1" placeholder="2026/1">
+            <span class="field-hint">Semestre letivo em curso.</span>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button id="m2BtnProcessar" class="btn btn-teal" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Gerar planos
+          </button>
+          <button id="m2BtnZip" class="btn btn-success" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Baixar todos (.zip)
+          </button>
+          <button id="m2BtnLimpar" class="btn btn-outline">Limpar lista</button>
+        </div>
+      </div>
+
+      <div id="m2FeedbackLote" class="feedback-bar" hidden></div>
+    </div>
+
+    <!-- Prévia individual -->
+    <div class="card">
+      <div class="card-title teal">
+        <span class="card-num teal">2</span>
+        Prévia Individual
+        <span class="tag">Opcional</span>
+      </div>
+      <p class="card-desc">Clique em um aluno da lista acima para ver e exportar o plano individualmente.</p>
+
+      <div id="m2SecIndividual" style="display:none">
+        <div class="resultado-block teal" style="margin-bottom:16px">
+          <div class="resultado-inner">
+            <div class="resultado-icon">🎓</div>
+            <div class="resultado-texto">
+              <span class="resultado-label">Enquadramento · Novo PPC</span>
+              <span id="m2ResultadoSemestre" class="resultado-valor">—</span>
+            </div>
+            <span id="m2ResultadoCH" class="resultado-ch"></span>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-bottom:16px">
+          <button id="m2BtnCopiarSEI" class="btn btn-teal">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copiar para SEI (&lt;&nbsp;&gt;)
+          </button>
+          <button id="m2BtnBaixarWord" class="btn btn-navy">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Baixar Word (.doc)
+          </button>
+        </div>
+
+        <div id="m2PreviewBox" class="preview-box"></div>
+      </div>
+
+      <div id="m2SecVazio" style="color:var(--gray-500);font-size:13.5px;font-style:italic">
+        Nenhum aluno selecionado. Processe os históricos e clique em um nome da lista.
+      </div>
+    </div>
+
+  </main>
+</div><!-- /screenNovoPPC -->
+
+
+<!-- Toast global -->
+<div id="toast" class="toast" hidden></div>
+
+<footer class="site-footer">
+  <span>Criado por André Sippel · 2026</span>
+  <span>🔒 Processamento 100% local — conformidade LGPD</span>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
