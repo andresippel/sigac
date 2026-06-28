@@ -52,6 +52,16 @@ function norm(s) {
     : "";
 }
 
+function escapeHTML(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 let _toastTimer;
 function showToast(msg, tipo = "") {
   const el = document.getElementById("toast");
@@ -316,6 +326,10 @@ function m1GerarHTML() {
     else nome = infoStr;
   }
 
+  // Higienizando as variáveis contra injeção de HTML
+  nome = escapeHTML(nome);
+  rga = escapeHTML(rga);
+
   const enq    = m1.ultimoEnquadramento || "Não calculado";
   const semStr = document.getElementById("m1Semestre")?.value.trim() || "2026/1";
   const p = semStr.split(/[\/.\-]/);
@@ -559,7 +573,12 @@ function m2ProcessarExcel(file) {
 }
 
 function m2GerarHTML(r, semestreBase) {
-  const { nome, rga, enquadramento, matriculadas, cobertas, chAnalisada, chOPT, chNFC } = r;
+  const { enquadramento, matriculadas, cobertas, chAnalisada, chOPT, chNFC } = r;
+  
+  // Higienizando os dados que vieram do processamento da planilha
+  const nome = escapeHTML(r.nome);
+  const rga = escapeHTML(r.rga);
+  
   const p = semestreBase.split(/[\/.\-]/);
   let ano = parseInt(p[0]) || new Date().getFullYear(), sem = parseInt(p[1]) || 1;
   function prox() { sem++; if (sem > 2) { sem = 1; ano++; } return `${ano}/${sem}`; }
@@ -645,6 +664,9 @@ async function m2ExecutarLote() {
     } catch (e) { item.status = "err"; err++; }
     pb.style.width = ((i + 1) / m2.arquivos.length * 100) + "%";
     m2RenderizarLista();
+    
+    // Pequeno respiro artificial de 30ms para o navegador atualizar visualmente a barra
+    await new Promise(resolve => setTimeout(resolve, 30));
   }
 
   btn.disabled = false;
@@ -807,6 +829,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("m2FeedbackLote").hidden = true;
     document.getElementById("m2SecIndividual").style.display = "none";
     document.getElementById("m2SecVazio").style.display = "block";
+    
+    // Limpa o input de arquivos para permitir subir o mesmo arquivo/lote novamente
+    document.getElementById("m2InputBatch").value = "";
   });
   document.getElementById("m2BtnCopiarSEI").addEventListener("click", () => {
     if (m2.selecionado === null) return;
