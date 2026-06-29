@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema de Planos de Estudos</title>
+  <title>Sistema de Gestão da Coordenação Acadêmica</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -19,7 +19,7 @@
 <header class="site-header">
   <div class="header-inner">
 
-    <a class="brand" onclick="irHome()" tabindex="0" role="button" aria-label="Voltar ao início">
+    <a class="brand" id="brandLink" tabindex="0" role="button" aria-label="Voltar ao início">
       <span class="brand-sigla">SIGAC</span>
       <div>
         <div class="brand-title">Planos de Estudos</div>
@@ -64,7 +64,7 @@
   <div class="home-cards">
 
     <div class="home-card card-aprov"
-         onclick="abrirModulo('aproveitamento')"
+         id="cardAproveitamento"
          tabindex="0" role="button"
          aria-label="Abrir sistema de aproveitamento de estudos">
       <div class="home-card-icon">📋</div>
@@ -81,7 +81,7 @@
     </div>
 
     <div class="home-card card-novoppc"
-         onclick="abrirModulo('novoppc')"
+         id="cardNovoPPC"
          tabindex="0" role="button"
          aria-label="Abrir sistema de transição de grade">
       <div class="home-card-icon">🔄</div>
@@ -108,7 +108,7 @@
 
   <div class="module-bar">
     <div class="module-bar-inner">
-      <button class="module-back" onclick="irHome()">
+      <button class="module-back" aria-label="Voltar ao início">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
         Início
       </button>
@@ -147,7 +147,7 @@
       <div class="fields-row">
         <div class="field-group field-wide">
           <label class="field-label" for="m1AlunoInfo">RGA · Nome</label>
-          <input type="text" id="m1AlunoInfo" placeholder="Ex: 1234.5678.910-1 - Maria da Silva" autocomplete="off">
+          <input type="text" id="m1AlunoInfo" placeholder="Ex: 1234.5678.910-0 - Maria da Silva" autocomplete="off">
           <span class="field-hint">Preenchido automaticamente ao importar o histórico.</span>
         </div>
         <div class="field-group field-narrow">
@@ -261,7 +261,7 @@
 
   <div class="module-bar">
     <div class="module-bar-inner">
-      <button class="module-back" onclick="irHome()">
+      <button class="module-back" aria-label="Voltar ao início">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
         Início
       </button>
@@ -410,6 +410,6 @@
   <span>🔒 Processamento 100% local — conformidade LGPD</span>
 </footer>
 
-<script src="app.js"></script>
+<script src="app.js" defer></script>
 </body>
 </html>
