@@ -3,13 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- CSP: só scripts do próprio site e das 2 CDNs abaixo (sem inline). Mesmo que algum dado malicioso
+       chegasse ao HTML, handlers como onerror= seriam bloqueados. "file:" mantém o uso abrindo o index.html direto. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' file: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' file: 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' file: data: blob:; connect-src 'self' file:; worker-src blob:; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>Sistema de Gestão da Coordenação Acadêmica</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" integrity="sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx@9.7.1/dist/index.iife.js" integrity="sha384-9OH56uLhIvkZkwF0jWNlfpcK3gPuSy5DfEMNqKe156wCpkND+MDdtaRyd05kwpG0" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -42,6 +48,9 @@
       </div>
       <div class="badge badge-idle" id="badgeEq">
         <span class="badge-dot"></span><span id="badgeEqNome">Equivalências</span>
+      </div>
+      <div class="badge badge-idle" id="badgePeriodo">
+        <span class="badge-dot"></span><span id="badgePeriodoNome">Nenhum período</span>
       </div>
     </div>
 
@@ -90,6 +99,23 @@
       <div class="home-card-desc">
         Para realizar a migração para o novo PPC. Aplica a tabela de equivalências automaticamente
         e gera o plano de estudos adaptado à grade nova — processamento em lote para vários alunos de uma vez.
+      </div>
+      <div class="home-card-cta">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        Abrir módulo
+      </div>
+    </div>
+
+    <div class="home-card card-horario"
+         id="cardHorario"
+         tabindex="0" role="button"
+         aria-label="Abrir sistema de horário de aulas">
+      <div class="home-card-icon">🗓️</div>
+      <span class="home-card-badge">Horário</span>
+      <div class="home-card-title">Horário de Aulas</div>
+      <div class="home-card-desc">
+        Cadastre disciplinas, professores, salas e turmas, e monte a grade arrastando para os dias
+        e horários — com checagem automática de conflito de sala, professor e turma.
       </div>
       <div class="home-card-cta">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
@@ -152,8 +178,15 @@
         </div>
         <div class="field-group field-narrow">
           <label class="field-label" for="m1Semestre">Semestre Base</label>
-          <input type="text" id="m1Semestre" value="2026/1" placeholder="2026/1" autocomplete="off">
-          <span class="field-hint">Semestre letivo atual.</span>
+          <input type="text" id="m1Semestre" placeholder="2026/2" autocomplete="off">
+          <span class="field-hint">Semestre letivo atual. Fica salvo para os próximos acessos.</span>
+        </div>
+        <div class="field-group">
+          <label class="checkbox-item" for="m1Paridade" style="margin-top:22px">
+            <input type="checkbox" id="m1Paridade" checked>
+            <span>Respeitar oferta ímpar/par</span>
+          </label>
+          <span class="field-hint">Disciplinas de semestre ímpar só em X/1; de semestre par só em X/2.</span>
         </div>
       </div>
     </div>
@@ -237,7 +270,7 @@
         <span class="card-num gray">⚙</span>
         Gerenciar Grade do Curso
       </div>
-      <p class="card-desc">Importe a grade curricular do curso ou faça backup da atual.</p>
+      <p class="card-desc">Importe a grade curricular do curso ou faça backup da atual. Para o plano automático respeitar pré-requisitos, cada disciplina do JSON pode ter <code>"prerequisitos": ["Nome de outra disciplina da grade"]</code>.</p>
       <div class="drop-zone drop-zone-sm" id="m1DropImportar" tabindex="0" role="button">
         <div class="drop-icon">⚙️</div>
         <p class="drop-title">Importar grade (.json)</p>
@@ -279,7 +312,7 @@
         Configuração — Grade e Equivalências
         <span class="tag">Carregar uma vez</span>
       </div>
-      <p class="card-desc">Os arquivos ficam salvos no navegador — só é preciso recarregar quando houver atualização.</p>
+      <p class="card-desc">Os arquivos ficam salvos no navegador — só é preciso recarregar quando houver atualização. Na grade nova, cada disciplina pode ter <code>"prerequisitos": ["Nome de outra disciplina da grade"]</code> para o plano respeitar a ordem de cursada.</p>
 
       <div class="config-grid">
 
@@ -337,8 +370,15 @@
         <div class="fields-row">
           <div class="field-group" style="max-width:180px">
             <label class="field-label" for="m2Semestre">Semestre base atual</label>
-            <input type="text" id="m2Semestre" value="2026/1" placeholder="2026/1">
-            <span class="field-hint">Semestre letivo em curso.</span>
+            <input type="text" id="m2Semestre" placeholder="2026/2">
+            <span class="field-hint">Semestre letivo em curso. Fica salvo para os próximos acessos.</span>
+          </div>
+          <div class="field-group">
+            <label class="checkbox-item" for="m2Paridade" style="margin-top:22px">
+              <input type="checkbox" id="m2Paridade" checked>
+              <span>Respeitar oferta ímpar/par</span>
+            </label>
+            <span class="field-hint">Disciplinas de semestre ímpar só em X/1; de semestre par só em X/2.</span>
           </div>
         </div>
 
@@ -402,6 +442,323 @@
 </div><!-- /screenNovoPPC -->
 
 
+<!-- ══════════════════════════════════════════
+     MÓDULO 3 — HORÁRIO DE AULAS
+══════════════════════════════════════════ -->
+<div id="screenHorario" class="screen">
+
+  <div class="module-bar">
+    <div class="module-bar-inner">
+      <button class="module-back" aria-label="Voltar ao início">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        Início
+      </button>
+      <div class="module-separator"></div>
+      <span class="module-title">Horário de Aulas</span>
+    </div>
+  </div>
+
+  <div style="background:var(--white);border-bottom:1px solid var(--gray-200)">
+    <div class="m3-tabs" style="max-width:1320px;margin:0 auto;padding:0 20px" id="m3Tabs">
+      <button class="m3-tab active" data-m3tab="cadastro">Cadastro</button>
+      <button class="m3-tab" data-m3tab="periodo">Período Letivo</button>
+      <button class="m3-tab" data-m3tab="turmas">Turmas</button>
+      <button class="m3-tab" data-m3tab="grade">Grade de Horários</button>
+      <button class="m3-tab" data-m3tab="ensalamento">Ensalamento</button>
+      <button class="m3-tab" data-m3tab="atribuir">Atribuir Professores</button>
+      <button class="m3-tab" data-m3tab="relatorios">Relatórios</button>
+      <button class="m3-tab" data-m3tab="dados">Dados</button>
+    </div>
+  </div>
+
+  <main class="layout layout-wide">
+
+    <!-- ── Cadastro ── -->
+    <div class="m3-panel active" id="m3PanelCadastro">
+      <div class="m3-tabs" id="m3SubTabs" style="margin-bottom:16px">
+        <button class="m3-tab active" data-m3sub="disciplinas">Disciplinas</button>
+        <button class="m3-tab" data-m3sub="professores">Professores</button>
+        <button class="m3-tab" data-m3sub="salas">Salas</button>
+      </div>
+
+      <div class="m3-subpanel active" id="m3SubDisciplinas">
+        <div class="card">
+          <div class="card-title violet"><span class="card-num violet">+</span>Nova disciplina</div>
+          <div class="fields-row">
+            <div class="field-group field-wide">
+              <label class="field-label" for="m3DiscNome">Nome</label>
+              <input type="text" id="m3DiscNome" placeholder="Ex: Dentística Pré-clínica I">
+            </div>
+            <div class="field-group field-narrow">
+              <label class="field-label" for="m3DiscSemestre">Semestre</label>
+              <select id="m3DiscSemestre">
+                <option value="1">1º</option><option value="2">2º</option><option value="3">3º</option>
+                <option value="4">4º</option><option value="5">5º</option><option value="6">6º</option>
+                <option value="7">7º</option><option value="8">8º</option><option value="9">9º</option>
+                <option value="10">10º</option>
+              </select>
+            </div>
+            <div class="field-group field-narrow">
+              <label class="field-label" for="m3DiscCH">CH total</label>
+              <input type="number" id="m3DiscCH" value="30" min="0">
+            </div>
+          </div>
+          <div class="fields-row" style="align-items:center;margin-top:10px">
+            <label class="field-checkbox" style="flex:0">
+              <input type="checkbox" id="m3DiscOptativa">
+              <span style="font-size:13px;color:var(--gray-700)">Disciplina optativa</span>
+            </label>
+            <button id="m3BtnAddDisciplina" class="btn btn-violet" style="margin-left:auto">Adicionar</button>
+          </div>
+          <p class="field-hint" style="margin-top:8px">Optativas não pertencem a um semestre fixo — ficam agrupadas à parte e, na Grade, aparecem junto com as reofertas.</p>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <div id="m3TabelaDisciplinas"></div>
+        </div>
+      </div>
+
+      <div class="m3-subpanel" id="m3SubProfessores">
+        <div class="card">
+          <div class="card-title violet"><span class="card-num violet">+</span>Novo professor</div>
+          <div class="fields-row">
+            <div class="field-group field-wide">
+              <label class="field-label" for="m3ProfNome">Nome</label>
+              <input type="text" id="m3ProfNome" placeholder="Nome do professor">
+            </div>
+            <div class="field-group field-wide">
+              <label class="field-label" for="m3ProfObs">Observação</label>
+              <input type="text" id="m3ProfObs" placeholder="Opcional">
+            </div>
+            <button id="m3BtnAddProfessor" class="btn btn-violet" style="align-self:flex-end;height:40px">Adicionar</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <table class="data-table">
+            <thead><tr><th>Nome</th><th>Observação</th><th class="col-icon"></th></tr></thead>
+            <tbody id="m3TabelaProfessores"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="m3-subpanel" id="m3SubSalas">
+        <div class="card">
+          <div class="card-title violet"><span class="card-num violet">+</span>Nova sala</div>
+          <div class="fields-row">
+            <div class="field-group field-wide">
+              <label class="field-label" for="m3SalaNome">Nome</label>
+              <input type="text" id="m3SalaNome" placeholder="Ex: Laboratório de Dentística">
+            </div>
+            <div class="field-group field-wide">
+              <label class="field-label" for="m3SalaTipo">Tipo</label>
+              <input type="text" id="m3SalaTipo" placeholder="Ex: Anfiteatro, Laboratório, Clínica...">
+            </div>
+            <button id="m3BtnAddSala" class="btn btn-violet" style="align-self:flex-end;height:40px">Adicionar</button>
+          </div>
+          <p class="field-hint" style="margin-top:8px">O tipo é usado para separar salas teóricas de clínicas/laboratórios na Grade (procure por palavras como "anfiteatro", "laboratório", "clínica").</p>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <table class="data-table">
+            <thead><tr><th>Nome</th><th>Tipo</th><th class="col-icon"></th></tr></thead>
+            <tbody id="m3TabelaSalas"></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /m3PanelCadastro -->
+
+    <!-- ── Período Letivo ── -->
+    <div class="m3-panel" id="m3PanelPeriodo">
+      <div class="card">
+        <div class="card-title violet"><span class="card-num violet">+</span>Novo período letivo</div>
+        <div class="fields-row">
+          <div class="field-group field-narrow">
+            <label class="field-label" for="m3PeriodoNome">Nome</label>
+            <input type="text" id="m3PeriodoNome" placeholder="Ex: 2026/2">
+          </div>
+          <div class="field-group field-narrow">
+            <label class="field-label" for="m3PeriodoTipo">Semestres</label>
+            <select id="m3PeriodoTipo">
+              <option value="impar">Ímpares (1,3,5,7,9)</option>
+              <option value="par">Pares (2,4,6,8,10)</option>
+            </select>
+          </div>
+          <button id="m3BtnAddPeriodo" class="btn btn-violet" style="align-self:flex-end;height:40px">Criar período</button>
+        </div>
+        <p class="field-hint" style="margin-top:8px">Os horários padrão (manhã/tarde/noite) são criados automaticamente.</p>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-title violet"><span class="card-num violet">i</span>Períodos cadastrados</div>
+        <div id="m3ListaPeriodos"></div>
+      </div>
+    </div><!-- /m3PanelPeriodo -->
+
+    <!-- ── Turmas ── -->
+    <div class="m3-panel" id="m3PanelTurmas">
+      <div class="m3-split">
+        <aside class="m3-sidebar">
+          <input type="text" id="m3TurmasBusca" placeholder="Buscar disciplina...">
+          <div id="m3TurmasSidebarLista"></div>
+        </aside>
+        <div class="m3-content" id="m3TurmasContent">
+          <div class="card"><p class="empty-state">Selecione uma disciplina na lista ao lado.</p></div>
+        </div>
+      </div>
+    </div><!-- /m3PanelTurmas -->
+
+    <!-- ── Grade de Horários ── -->
+    <div class="m3-panel" id="m3PanelGrade">
+      <div class="m3-split">
+        <aside class="m3-sidebar">
+          <input type="text" id="m3GradeBusca" placeholder="Buscar disciplina...">
+          <div id="m3GradeSidebarLista"></div>
+        </aside>
+        <div class="m3-content">
+          <div class="m3-tabs" id="m3GradeSemestreTabs"></div>
+          <div id="m3GradeGridWrap" style="overflow-x:auto"></div>
+        </div>
+      </div>
+    </div><!-- /m3PanelGrade -->
+
+    <!-- ── Ensalamento ── -->
+    <div class="m3-panel" id="m3PanelEnsalamento">
+      <p class="field-hint" style="margin-bottom:12px">Mesma informação da Grade de Horários, organizada por sala. Editar ou adicionar aulas aqui atualiza a grade automaticamente.</p>
+      <div id="m3EnsalamentoWrap" style="overflow-x:auto"></div>
+    </div><!-- /m3PanelEnsalamento -->
+
+    <!-- ── Atribuir Professores ── -->
+    <div class="m3-panel" id="m3PanelAtribuir">
+      <p class="field-hint" style="margin-bottom:12px">Escolha o professor de cada encontro que já está na Grade de Horários. Uma turma pode ter professores diferentes em dias diferentes, ou mais de um professor no mesmo encontro (ex: turmas de Clínica/Estágio Integrado).</p>
+      <div class="m3-split">
+        <aside class="m3-sidebar">
+          <input type="text" id="m3AtribuirBusca" placeholder="Buscar disciplina...">
+          <div id="m3AtribuirSidebarLista"></div>
+        </aside>
+        <div class="m3-content" id="m3AtribuirContent">
+          <div class="card"><p class="empty-state">Selecione uma disciplina na lista ao lado.</p></div>
+        </div>
+      </div>
+    </div><!-- /m3PanelAtribuir -->
+
+    <!-- ── Relatórios ── -->
+    <div class="m3-panel" id="m3PanelRelatorios">
+      <div class="card">
+        <div class="card-title violet">📄 Horário</div>
+        <p class="card-desc">Gera o horário completo do período selecionado, uma página por semestre curricular, com a tabela-resumo de disciplinas.</p>
+        <div class="fields-row">
+          <button id="m3BtnPdfHorario" class="btn btn-violet">Exportar PDF</button>
+          <button id="m3BtnDocxHorario" class="btn btn-outline">Exportar Word</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-title violet">📄 Ensalamento</div>
+        <p class="card-desc">Tabela de salas × dias × turnos do período, separada em Salas Teóricas e Clínicas/Laboratórios.</p>
+        <div class="fields-row">
+          <button id="m3BtnPdfEnsalamento" class="btn btn-violet">Exportar PDF</button>
+          <button id="m3BtnDocxEnsalamento" class="btn btn-outline">Exportar Word</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-title violet">📊 Distribuição de Professores</div>
+        <p class="card-desc">Planilha com cada disciplina, turma, professor(es), dia, horário e sala.</p>
+        <button id="m3BtnXlsxDistribuicao" class="btn btn-violet">Exportar planilha</button>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-title violet">📊 Carga Horária por Professor</div>
+        <p class="card-desc">Total de horas-aula semanais de cada professor, com detalhamento por disciplina/turma/dia/horário.</p>
+        <button id="m3BtnXlsxCargaHoraria" class="btn btn-violet">Exportar planilha</button>
+      </div>
+      <div id="m3FeedbackRelatorios" class="feedback-bar error" hidden style="margin-top:16px"></div>
+    </div><!-- /m3PanelRelatorios -->
+
+    <!-- ── Dados ── -->
+    <div class="m3-panel" id="m3PanelDados">
+      <div class="card card-admin">
+        <div class="card-title"><span class="card-num gray">⚙</span>Backup dos dados do Horário de Aulas</div>
+        <p class="card-desc">
+          Os dados deste módulo ficam salvos só neste navegador. Exporte um backup regularmente —
+          principalmente antes de trocar de computador ou navegador — e importe para restaurar ou migrar.
+        </p>
+        <div class="btn-row">
+          <button id="m3BtnExportarDados" class="btn btn-outline">↓ Exportar backup (.json)</button>
+          <label class="btn btn-outline" for="m3InputImportarDados" style="cursor:pointer">↑ Importar backup (.json)</label>
+          <input type="file" id="m3InputImportarDados" accept=".json" hidden>
+          <button id="m3BtnResetarDados" class="btn btn-danger">Apagar todos os dados</button>
+        </div>
+        <div id="m3FeedbackDados" class="feedback-bar" hidden></div>
+      </div>
+    </div><!-- /m3PanelDados -->
+
+  </main>
+</div><!-- /screenHorario -->
+
+<!-- Modal — Nova/Editar aula -->
+<div id="m3ModalAula" class="modal-overlay" hidden>
+  <div class="modal-box">
+    <div class="modal-header" id="m3ModalTitulo">Nova aula</div>
+    <div class="modal-body">
+      <div id="m3ModalContexto" class="field-hint"></div>
+
+      <div class="field-group" id="m3ModalGrupoTurma" hidden>
+        <label class="field-label" for="m3ModalTurma">Turma</label>
+        <select id="m3ModalTurma"></select>
+      </div>
+      <div class="field-group field-narrow" id="m3ModalGrupoHorario" hidden>
+        <label class="field-label" for="m3ModalHorario">Horário</label>
+        <select id="m3ModalHorario"></select>
+      </div>
+
+      <datalist id="m3SalasDatalist"></datalist>
+      <div class="field-group">
+        <label class="field-label" for="m3ModalSala">Sala</label>
+        <input type="text" id="m3ModalSala" list="m3SalasDatalist" placeholder="Buscar sala ou digitar uma externa...">
+        <div id="m3ModalSalaHint" class="field-hint" hidden>Sala externa (fora do cadastro) — apenas informativa, sem checagem de conflito.</div>
+      </div>
+      <button type="button" id="m3ModalBtnAddSala2" class="btn btn-outline btn-sm" style="align-self:flex-start">+ segunda sala</button>
+      <div class="field-group" id="m3ModalGrupoSala2" hidden>
+        <label class="field-label" for="m3ModalSala2">2ª sala</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="m3ModalSala2" list="m3SalasDatalist" placeholder="Buscar sala ou digitar uma externa..." style="flex:1">
+          <button type="button" id="m3ModalBtnRemoveSala2" class="btn-icon" title="Remover segunda sala" style="width:40px;height:40px">✕</button>
+        </div>
+        <div id="m3ModalSala2Hint" class="field-hint" hidden>Sala externa (fora do cadastro) — apenas informativa, sem checagem de conflito.</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Professores (opcional)</label>
+        <div id="m3ModalProfessoresChips"></div>
+        <div style="display:flex;gap:6px">
+          <select id="m3ModalProfessorAdd" style="flex:1"></select>
+          <button type="button" id="m3ModalBtnAddProfessor" class="btn btn-outline btn-sm">+ adicionar</button>
+        </div>
+      </div>
+
+      <div class="field-group field-narrow">
+        <label class="field-label" for="m3ModalDuracao">Duração (horas)</label>
+        <input type="number" id="m3ModalDuracao" min="1" max="4" value="1">
+      </div>
+      <div id="m3ModalErro" class="feedback-bar error" hidden></div>
+
+      <div id="m3ModalDividirBloco" hidden style="border-top:1px solid var(--gray-200);padding-top:12px;margin-top:4px">
+        <label class="field-label" style="margin-bottom:2px">Dividir este encontro em dois</label>
+        <p class="field-hint" style="margin-bottom:8px">Útil quando professores diferentes cobrem partes distintas do mesmo bloco de horário (ex: 2h para um, 2h para outro). Depois de dividir, atribua o professor de cada parte na etapa "Atribuir Professores".</p>
+        <div class="fields-row">
+          <div>
+            <label class="field-label" for="m3ModalDuracaoParte1" style="font-size:11px">Duração da 1ª parte</label>
+            <input type="number" id="m3ModalDuracaoParte1" min="1" value="1" style="width:60px">
+          </div>
+          <span id="m3ModalDividirParte2Label" class="field-hint" style="align-self:center"></span>
+          <button type="button" id="m3ModalBtnDividir" class="btn btn-outline btn-sm" style="align-self:center">Dividir</button>
+        </div>
+        <div id="m3ModalErroDivisao" class="feedback-bar error" hidden style="margin-top:8px"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="m3ModalBtnSalvar" class="btn btn-violet">Salvar</button>
+      <button id="m3ModalBtnExcluir" class="btn btn-danger" hidden>Excluir aula</button>
+      <button id="m3ModalBtnCancelar" class="btn btn-outline">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast global -->
 <div id="toast" class="toast" hidden></div>
 
@@ -410,6 +767,38 @@
   <span>🔒 Processamento 100% local — conformidade LGPD</span>
 </footer>
 
-<script src="app.js" defer></script>
+<!-- Núcleo compartilhado (utilitários, UI, navegação) -->
+<script src="js/core/utils.js" defer></script>
+<script src="js/core/ui.js" defer></script>
+<script src="js/core/armazenamento.js" defer></script>
+<script src="js/core/preferencias.js" defer></script>
+<script src="js/core/plano.js" defer></script>
+<script src="js/core/navegacao.js" defer></script>
+
+<!-- Módulo 1 — Aproveitamento de Estudos -->
+<script src="js/modulos/aproveitamento.js" defer></script>
+
+<!-- Módulo 2 — Mudança de Grade -->
+<script src="js/modulos/mudanca-grade.js" defer></script>
+
+<!-- Módulo 3 — Horário de Aulas -->
+<script src="js/modulos/horario/estado.js" defer></script>
+<script src="js/modulos/horario/validacao.js" defer></script>
+<script src="js/modulos/horario/regras.js" defer></script>
+<script src="js/modulos/horario/cadastro.js" defer></script>
+<script src="js/modulos/horario/turmas.js" defer></script>
+<script src="js/modulos/horario/atribuir-professores.js" defer></script>
+<script src="js/modulos/horario/grade.js" defer></script>
+<script src="js/modulos/horario/ensalamento.js" defer></script>
+<script src="js/modulos/horario/modal-aula.js" defer></script>
+<script src="js/modulos/horario/relatorios/dados.js" defer></script>
+<script src="js/modulos/horario/relatorios/pdf.js" defer></script>
+<script src="js/modulos/horario/relatorios/planilhas.js" defer></script>
+<script src="js/modulos/horario/relatorios/word.js" defer></script>
+<script src="js/modulos/horario/backup.js" defer></script>
+<script src="js/modulos/horario/init.js" defer></script>
+
+<!-- Ponto de entrada (sempre por último) -->
+<script src="js/core/main.js" defer></script>
 </body>
 </html>
